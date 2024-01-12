@@ -91,7 +91,7 @@ public class Coupon {
         this.description = description;
     }
 
-    public int getAmount() throws CouponAmountException {
+    public int getAmount() {
             return amount;
     }
 

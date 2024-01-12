@@ -61,7 +61,7 @@ public class CompanyService extends ClientService {
     public int addCoupon(Coupon coupon) throws CouponTitleAlreadyExistsException, IdNotFoundException, CouponDateException, CouponAmountException, CouponPriceException {
         //checking if the company logged in or not.
         if (companyID > 0) {
-            if (coupon.getAmount() > 0) {
+//            if (coupon.getAmount() > 0) {
                 if (coupon.getPrice() >= 0) {
                     System.out.println(coupon);
                     //checking if the coupon title already exists in company list of coupons and to see if the coupon doesn't have an id (auto increment in database)
@@ -75,8 +75,8 @@ public class CompanyService extends ClientService {
                         throw new CouponTitleAlreadyExistsException(coupon.getTitle());
                 }else
                     throw new CouponPriceException();
-            }else
-                throw new CouponAmountException("Can only add coupon with amount > 0");
+//            }else
+//                throw new CouponAmountException("Can only add coupon with amount > 0");
         } else
             throw new IdNotFoundException("Please login...(id not present)");
     }
@@ -88,11 +88,17 @@ public class CompanyService extends ClientService {
      *               { (Object)Company, (ENUM)Category, String title, String description, int amount, double price, Date(SQL) startDate, Date(SQL) endDate, String image}
      * @throws IdNotFoundException if the coupon does not exist by ID or doest have id.
      */
-    public void updateCoupon(Coupon coupon) throws IdNotFoundException, CouponTitleAlreadyExistsException {
+    public Coupon updateCoupon(Coupon coupon) throws IdNotFoundException, CouponTitleAlreadyExistsException, CouponPriceException, CouponDateException, CouponAmountException {
         if (couponRepository.existsById(coupon.getCouponID())) {
-            if (!couponRepository.existsBycompany_idAndTitle(this.companyID, coupon.getTitle()))
-                couponRepository.save(coupon);
-            else throw new CouponTitleAlreadyExistsException();
+            if (!couponRepository.existsBycompany_idAndTitle(this.companyID, coupon.getTitle())) {
+                if (coupon.getEndDate().after(coupon.getStartDate()) || coupon.getEndDate().equals(coupon.getStartDate())) {
+                    if (coupon.getPrice() > 0) {
+
+                            return couponRepository.saveAndFlush(coupon);
+
+                    } else throw new CouponPriceException();
+                } else throw new CouponDateException("Cannot set endDate before startDate!!!");
+            } else throw new CouponTitleAlreadyExistsException(coupon.getTitle());
         } else throw new IdNotFoundException("Coupon not found, unable to update coupon.(id not found)");
     }
 
@@ -105,8 +111,8 @@ public class CompanyService extends ClientService {
     public void deleteCoupon(int couponID) throws IdNotFoundException, CouponNotExistException {
         if (this.companyID > 0) {
             if (couponRepository.existsBycompany_idAndCouponID(this.companyID, couponID)) {
-                couponRepository.deleteCouponFromCustomers(couponID);
-                couponRepository.deleteById(couponID);
+                    couponRepository.deleteCouponFromCustomers(couponID);
+                    couponRepository.deleteById(couponID);
             } else throw new CouponNotExistException("Coupon not found or not owned");
         } else throw new IdNotFoundException("Must login to get information...");
     }
