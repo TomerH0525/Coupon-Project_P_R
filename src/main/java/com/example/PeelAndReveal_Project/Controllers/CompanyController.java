@@ -51,6 +51,11 @@ public class CompanyController {
         return ResponseEntity.accepted().body("Coupon Deleted Successfully!");
     }
 
+    @GetMapping("/coupon/all")
+    public ResponseEntity<List<Coupon>> getAllCompanyCoupons() throws LoginFailedException, IdNotFoundException {
+        return ResponseEntity.ok(getService().getAllCompanyCoupons());
+    }
+
     @GetMapping("/coupon/{id}")
     public ResponseEntity<Coupon> getCouponByID(@PathVariable int couponID) throws LoginFailedException, CouponNotExistException, IdNotFoundException {
         return ResponseEntity.ok(getService().getCompanyCouponById(couponID));
