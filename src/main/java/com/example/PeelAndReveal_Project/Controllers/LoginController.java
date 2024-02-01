@@ -55,7 +55,7 @@ public class LoginController {
                    .withClaim("id",company.getId())
                    .withClaim("name",company.getName())
                    .withClaim("email",company.getEmail())
-                   .withClaim("role", ClientType.Company.toString())
+                   .withClaim("clientType", ClientType.Company.toString())
                    .withIssuedAt(Instant.now())
                    .withExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES))
                    .sign(Algorithm.none());
@@ -67,7 +67,7 @@ public class LoginController {
                    .withClaim("firstName", customer.getFirstName())
                    .withClaim("lastName", customer.getLastName())
                    .withClaim("email", customer.getEmail())
-                   .withClaim("role", ClientType.Customer.toString())
+                   .withClaim("clientType", ClientType.Customer.toString())
                    .withIssuedAt(Instant.now())
                    .withExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES))
                    .sign(Algorithm.none());
@@ -75,7 +75,7 @@ public class LoginController {
        }else if (facade instanceof AdminService){
            return JWT.create()
                    .withClaim("name", "Big Boss")
-                   .withClaim("role", ClientType.Administrator.toString())
+                   .withClaim("clientType", ClientType.Administrator.toString())
                    .withIssuedAt(Instant.now())
                    .withExpiresAt(Instant.now().plus(15, ChronoUnit.MINUTES))
                    .sign(Algorithm.none());

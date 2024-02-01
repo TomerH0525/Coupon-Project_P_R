@@ -40,7 +40,7 @@ public class CompanyController {
         return ResponseEntity.ok(newCouponID);
     }
 
-    @PutMapping("/coupon_"+"{id}/update")
+    @PutMapping("/coupon/{id}/update")
     public ResponseEntity<Coupon> updateCoupon(@RequestBody Coupon coupon, @PathVariable("id") int couponID) throws LoginFailedException, CouponTitleAlreadyExistsException, IdNotFoundException, CouponAmountException, CouponPriceException, CouponDateException {
         return ResponseEntity.accepted().body(getService().updateCoupon(coupon));
     }
