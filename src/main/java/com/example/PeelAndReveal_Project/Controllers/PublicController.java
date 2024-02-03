@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController()
 @RequestMapping("/coupons")
-public class    PublicController {
+public class PublicController {
 
     private final PublicService service;
 
