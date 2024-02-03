@@ -7,7 +7,6 @@ import com.example.PeelAndReveal_Project.Exceptions.*;
 import com.example.PeelAndReveal_Project.Services.ClientService;
 import com.example.PeelAndReveal_Project.Services.CompanyService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,8 +33,9 @@ public class CompanyController {
     }
 
     @PostMapping("/coupon/add")
-    public ResponseEntity<Integer> addCoupon(@RequestBody Coupon coupon) throws CouponTitleAlreadyExistsException, IdNotFoundException, CouponDateException, CouponAmountException, CouponPriceException, LoginFailedException {
-        System.out.println(coupon);
+    public ResponseEntity<Integer> addCoupon(@RequestBody Coupon coupon) throws CouponTitleAlreadyExistsException, IdNotFoundException, CouponDateException, CouponAmountException, CouponPriceException, LoginFailedException, CouponCategoryException, CouponDescriptionException {
+
+        coupon.setCompany(getService().getCompanyDetails());
         int newCouponID = getService().addCoupon(coupon);
         return ResponseEntity.ok(newCouponID);
     }
@@ -86,7 +86,7 @@ public class CompanyController {
         String token = request.getHeader("Authorization");
         CompanyService company = (CompanyService) sessionStore.get(token);
         if(company == null)
-            throw new LoginFailedException();
+            throw new LoginFailedException("Login information expired");
         else return company;
 
     }

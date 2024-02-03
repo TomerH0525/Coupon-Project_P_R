@@ -5,6 +5,7 @@ import com.example.PeelAndReveal_Project.Exceptions.CouponAmountException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
+import java.sql.Clob;
 import java.sql.Date;
 import java.util.Objects;
 import java.util.Set;
@@ -31,6 +32,8 @@ public class Coupon {
     private Date startDate;
     @Column(nullable = false)
     private Date endDate;
+    @Lob
+    @Column(columnDefinition="MEDIUMTEXT")
     private String image;
     @ManyToMany(mappedBy = "coupons")
     @JsonIgnore
@@ -63,7 +66,7 @@ public class Coupon {
         return company;
     }
 
-    private void setCompany(Company company) {
+    public void setCompany(Company company) {
         this.company = company;
     }
 

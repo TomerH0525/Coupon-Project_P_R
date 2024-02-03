@@ -9,6 +9,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import javax.sql.rowset.serial.SerialBlob;
+import java.sql.Blob;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 
 @SpringBootApplication
@@ -23,7 +28,7 @@ public class PeelAndRevealApplication implements CommandLineRunner {
     ApplicationContext context;
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws SQLException {
 
             testAll();
 
