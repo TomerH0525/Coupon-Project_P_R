@@ -7,7 +7,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
 import javax.sql.rowset.serial.SerialBlob;
 import java.sql.Blob;
@@ -24,6 +27,15 @@ public class PeelAndRevealApplication implements CommandLineRunner {
         SpringApplication.run(PeelAndRevealApplication.class, args);
     }
 
+    @Configuration
+    public class WebConfiguration extends WebMvcConfigurationSupport {
+
+        @Override
+        public void addResourceHandlers(ResourceHandlerRegistry registry){
+            registry.addResourceHandler("/**")
+                    .addResourceLocations("classpath:/");
+        }
+    }
     @Autowired
     ApplicationContext context;
 

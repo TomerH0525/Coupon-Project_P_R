@@ -58,31 +58,35 @@ public class CompanyService extends ClientService {
      * @throws CouponDateException        if the company is trying to add a coupon with end_date before today.
      * @throws IdNotFoundException               if the company is not logged in or id not found
      */
-    public int addCoupon(Coupon coupon) throws CouponTitleAlreadyExistsException, IdNotFoundException, CouponDateException, CouponAmountException, CouponPriceException, CouponCategoryException, CouponDescriptionException {
+    public int addCoupon(Coupon coupon) throws CouponTitleAlreadyExistsException, IdNotFoundException, CouponDateException, CouponAmountException, CouponPriceException, CouponCategoryException, CouponDescriptionException, InvalidCouponException {
         //checking if the company logged in or not.
         if (companyID > 0) {
-            //checking if the coupon title already exists in company list of coupons and to see if the coupon doesn't have an id (auto increment in database)
+            if (!coupon.getTitle().isEmpty()) {
+                //checking if the coupon title already exists in company list of coupons and to see if the coupon doesn't have an id (auto increment in database)
                 if (!couponRepository.existsBycompany_idAndTitle(
                         coupon.getCompany().getId(), coupon.getTitle()) && coupon.getCouponID() == 0) {
                     //checking if price is above 0 (cannot purchase coupon for free)
                     if (coupon.getPrice() >= 0) {
                         if (coupon.getCategory() != null) {
-                            if (coupon.getDescription().isEmpty() || coupon.getDescription().length() >= 120) {
+                            if (coupon.getDescription().length() >= 20) {
                                 //checking if the coupon start_date is not set after end_date.
-                                if (coupon.getEndDate().after(coupon.getStartDate()) || coupon.getEndDate().equals(coupon.getStartDate())) {
-                                    return couponRepository.saveAndFlush(coupon).getCouponID();
+                                if (coupon.getEndDate() != null && coupon.getStartDate() != null) {
+                                    if (coupon.getEndDate().after(coupon.getStartDate()) || coupon.getEndDate().equals(coupon.getStartDate())) {
+                                        return couponRepository.saveAndFlush(coupon).getCouponID();
+                                    } else
+                                        throw new CouponDateException("Cannot set end_date before start_date!!!");
                                 } else
-                                    throw new CouponDateException("Cannot set end_date before start_date!!!");
-                            }else
+                                    throw new CouponDateException("start/end date cannot be empty.");
+                            } else
                                 throw new CouponDescriptionException();
-                        }else
+                        } else
                             throw new CouponCategoryException();
                     } else
                         throw new CouponPriceException();
-                }else
+                } else
                     throw new CouponTitleAlreadyExistsException(coupon.getTitle());
-//            }else
-//                throw new CouponAmountException("Can only add coupon with amount > 0");
+            }else
+                throw new InvalidCouponException("Cannot add coupon with empty title");
         } else
             throw new IdNotFoundException("Please login...(id not present)");
     }

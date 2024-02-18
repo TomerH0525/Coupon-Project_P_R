@@ -26,8 +26,8 @@ public class PublicController {
         return ResponseEntity.ok(service.getAllCoupons());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Coupon> getCouponByID(@PathVariable int couponID) throws CouponNotExistException {
-        return ResponseEntity.ok(service.getCouponByID(couponID));
+    @GetMapping("/{couponId}")
+    public ResponseEntity<Coupon> getCouponByID(@PathVariable int couponId) throws CouponNotExistException {
+        return ResponseEntity.ok(service.getCouponByID(couponId));
     }
 }
