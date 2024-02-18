@@ -19,8 +19,7 @@ public class Company {
     @Column(nullable = false)
     @JsonIgnore
     private String password;
-    @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
-    @JsonIgnore
+    @OneToMany(mappedBy = "company", fetch = FetchType.EAGER)
     private Set<Coupon> coupons;
 
     public Company(String name, String email, String password) {

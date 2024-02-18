@@ -17,6 +17,7 @@ public class Coupon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int couponID;
     @ManyToOne
+    @JsonIgnore
     private Company company;
     @Enumerated
     private Category category;
