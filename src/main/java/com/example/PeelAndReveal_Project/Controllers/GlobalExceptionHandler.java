@@ -24,7 +24,7 @@ public class GlobalExceptionHandler{
 
     @ExceptionHandler({CouponDateException.class,CouponAmountException.class,CouponPriceException.class
     ,CouponAlreadyOwnedException.class,CouponTitleAlreadyExistsException.class,NameExistsException.class
-    , CouponDescriptionException.class , InvalidCouponException.class})
+    , CouponDescriptionException.class , InvalidCouponException.class, EmailExistsException.class})
     public ResponseEntity<String> BadRequestHandler(Exception ex){
 
         return ResponseEntity
