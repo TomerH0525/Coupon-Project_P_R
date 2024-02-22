@@ -10,6 +10,10 @@ import com.example.PeelAndReveal_Project.Exceptions.NameExistsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @Service
@@ -55,7 +59,8 @@ public class AdminService extends ClientService {
      * @throws NameExistsException  if the email is already taken
      */
     public Company addCompany(Company company) throws EmailExistsException, NameExistsException {
-        if (!companyRepository.existsByEmail(company.getEmail())) {
+        if (!companyRepository.existsByEmail(company.getEmail())
+        && !customerRepository.existsByEmail(company.getEmail())) {
             if (!companyRepository.existsByName(company.getName()))
                 return companyRepository.saveAndFlush(company);
             else throw new NameExistsException();
@@ -68,11 +73,20 @@ public class AdminService extends ClientService {
      * @param company company Object after changes!
      * @throws IdNotFoundException - if the company's ID wasn't found in the database.
      */
-    public void updateCompany(Company company) throws IdNotFoundException, NameExistsException {
-        Company companyAtDataBase = companyRepository.findById(company.getId()).orElseThrow(IdNotFoundException::new);
-        if (companyAtDataBase.getName().equalsIgnoreCase(company.getName()))
-            companyRepository.save(company);
-        else throw new NameExistsException("Cannot change company name!");
+    public void updateCompany(Company company) throws IdNotFoundException, NameExistsException, EmailExistsException {
+        if (companyRepository.existsByEmail(company.getEmail())) {
+            Company companyAtDataBase = companyRepository.findById(company.getId()).orElseThrow(IdNotFoundException::new);
+            if (companyAtDataBase.getName().equalsIgnoreCase(company.getName())) {
+                if (companyAtDataBase.getEmail().equalsIgnoreCase(company.getEmail())) {
+                    companyRepository.save(company);
+                }else throw new EmailExistsException();
+            }else throw new NameExistsException("Cannot change company name!");
+        }else{
+            Company companyAtDataBase = companyRepository.findById(company.getId()).orElseThrow(IdNotFoundException::new);
+            if (companyAtDataBase.getName().equalsIgnoreCase(company.getName()))
+                companyRepository.save(company);
+            else throw new NameExistsException("Cannot change company name!");
+        }
     }
 
     /**
@@ -87,6 +101,13 @@ public class AdminService extends ClientService {
         if (companyRepository.existsById(companyID)) {
             List<Coupon> coupons = couponRepository.findAllBycompany_id(companyID);
             if (!coupons.isEmpty()) {
+                coupons.stream().forEach(c ->{
+                try {
+                    Path imagePath = Paths.get(System.getProperty("user.dir") + File.separator + "/target/classes/images/"+c.getImage().replace("http://localhost:8080/images/",""));
+                    Files.delete(imagePath);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }});
                 couponRepository.deleteAllInBatch(coupons);
             }
             companyRepository.deleteById(companyID);
@@ -102,7 +123,8 @@ public class AdminService extends ClientService {
      * @throws IdNotZeroException   - if the customer you are trying to add already has an id set(must be 0 when adding).
      */
     public Customer addCustomer(Customer customer) throws EmailExistsException, IdNotZeroException {
-        if (!customerRepository.existsByEmail(customer.getEmail())) {
+        if (!customerRepository.existsByEmail(customer.getEmail())
+        && !companyRepository.existsByEmail(customer.getEmail())) {
             if (customer.getCustomerID() == 0)
                 return customerRepository.saveAndFlush(customer);
             else throw new IdNotZeroException();
@@ -117,13 +139,18 @@ public class AdminService extends ClientService {
      * @throws EmailExistsException if the email already exists in database.
      */
     public void updateCustomer(Customer customer) throws IdNotFoundException, EmailExistsException {
-
-        if (customerRepository.existsById(customer.getCustomerID())) {
-            if (!customerRepository.existsByEmail(customer.getEmail())) {
+        Customer thisCustomer = customerRepository.findByEmail(customer.getEmail()).orElse(null);
+        if (!companyRepository.existsByEmail(customer.getEmail())) {
+            if (thisCustomer == null) {
                 customerRepository.save(customer);
+            } else {
+                if (thisCustomer.getCustomerID() == customer.getCustomerID()) {
+                    customerRepository.save(customer);
 
-            } else throw new EmailExistsException();
-        } else throw new IdNotFoundException();
+                } else throw new EmailExistsException();
+            }
+        }else throw new EmailExistsException();
+
 
 
     }
