@@ -19,8 +19,7 @@ public class Customer {
     private String email;
     @Column(nullable = false)
     private String password;
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JsonIgnore
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Coupon> coupons;
 
     public Customer() {

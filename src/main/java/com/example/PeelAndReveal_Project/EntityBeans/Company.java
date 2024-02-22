@@ -17,7 +17,6 @@ public class Company {
     @Column(unique = true, nullable = false)
     private String email;
     @Column(nullable = false)
-    @JsonIgnore
     private String password;
     @OneToMany(mappedBy = "company", fetch = FetchType.EAGER)
     private Set<Coupon> coupons;
