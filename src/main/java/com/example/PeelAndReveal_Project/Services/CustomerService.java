@@ -59,30 +59,26 @@ public class CustomerService extends ClientService {
      * if coupon is already owned by the customer ,
      * if the coupon is not out of stock
      *
-     * @param coupon { (Object)Company, (ENUM)Category, String title, String description, int amount, double price, Date(SQL) startDate, Date(SQL) endDate, String image}
+     * @param couponId { (Object)Company, (ENUM)Category, String title, String description, int amount, double price, Date(SQL) startDate, Date(SQL) endDate, String image}
      * @throws IdNotFoundException         if there was a problem with customer ID not displaying correctly.
-     * @throws InvalidCouponException      if the coupon the customer is trying to purchase invalid.
      * @throws CouponDateException         if the coupon the customer is trying to purchase out of date.
      * @throws CouponAmountException       if the coupon amount at 0.
      * @throws CouponAlreadyOwnedException if the coupon is already owned by the customer (no duplicates)
      */
     @Transactional
-    public synchronized void purchaseCoupon(Coupon coupon) throws IdNotFoundException, CouponDateException, CouponAmountException, CouponAlreadyOwnedException, InvalidCouponException, InterruptedException {
+    public synchronized void purchaseCoupon(int couponId) throws IdNotFoundException, CouponDateException, CouponAmountException, CouponAlreadyOwnedException {
         Customer thisCustomer = customerRepository.findById(customerID).orElseThrow(IdNotFoundException::new);
-        Date couponEndDate = coupon.getEndDate();
+        Coupon dataBaseCoupon = couponRepository.findById(couponId).orElseThrow(() -> new IdNotFoundException("Coupon not found..."));
+        Date couponEndDate = dataBaseCoupon.getEndDate();
         boolean ownedCoupon = thisCustomer.getCoupons().stream()
-                .anyMatch(c -> c.getCouponID() == coupon.getCouponID());
-
+                .anyMatch(c -> c.getCouponID() == dataBaseCoupon.getCouponID());
         if (couponEndDate.after(Date.valueOf(LocalDate.now())) || couponEndDate.equals(Date.valueOf(LocalDate.now()))) {
             if (!ownedCoupon) {
-                Coupon dataBaseCoupon = couponRepository.findById(coupon.getCouponID()).orElseThrow(() -> new IdNotFoundException("Coupon not found..."));
-                //amount is checked in setAmount method inside Coupon object, if 0 throws Exception.
-                int couponAmount = dataBaseCoupon.getAmount();
-                if (couponAmount > 0) {
-                    dataBaseCoupon.setAmount(couponAmount);
+                if (dataBaseCoupon.getAmount() > 0) {
+                    dataBaseCoupon.setAmount(dataBaseCoupon.getAmount()-1);
                     thisCustomer.getCoupons().add(dataBaseCoupon);
                     customerRepository.save(thisCustomer);
-                } else throw new CouponAmountException("(coupon)" + coupon.getTitle() + " : out of stock");
+                } else throw new CouponAmountException("(coupon)" + dataBaseCoupon.getTitle() + " : out of stock");
 
             } else throw new CouponAlreadyOwnedException();
         } else throw new CouponDateException();
