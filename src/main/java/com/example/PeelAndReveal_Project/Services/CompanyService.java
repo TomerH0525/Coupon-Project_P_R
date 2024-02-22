@@ -7,7 +7,12 @@ import com.example.PeelAndReveal_Project.Exceptions.*;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Scope("prototype")
@@ -100,15 +105,16 @@ public class CompanyService extends ClientService {
      */
     public Coupon updateCoupon(Coupon coupon) throws IdNotFoundException, CouponTitleAlreadyExistsException, CouponPriceException, CouponDateException, CouponAmountException {
         if (couponRepository.existsById(coupon.getCouponID())) {
-            if (!couponRepository.existsBycompany_idAndTitle(this.companyID, coupon.getTitle())) {
-                if (coupon.getEndDate().after(coupon.getStartDate()) || coupon.getEndDate().equals(coupon.getStartDate())) {
-                    if (coupon.getPrice() > 0) {
+                List<Coupon> companyCoupons = couponRepository.findAllBycompany_id(coupon.getCompany().getId());
+                if (companyCoupons.stream().noneMatch(c -> Objects.equals(c.getTitle(), coupon.getTitle()) && c.getCouponID() != coupon.getCouponID())) {
+                    if (coupon.getEndDate().after(coupon.getStartDate()) || coupon.getEndDate().equals(coupon.getStartDate())) {
+                        if (coupon.getPrice() > 0) {
 
                             return couponRepository.saveAndFlush(coupon);
 
-                    } else throw new CouponPriceException();
-                } else throw new CouponDateException("Cannot set endDate before startDate!!!");
-            } else throw new CouponTitleAlreadyExistsException(coupon.getTitle());
+                        } else throw new CouponPriceException();
+                    } else throw new CouponDateException("Cannot set endDate before startDate!!!");
+                } else throw new CouponTitleAlreadyExistsException(coupon.getTitle());
         } else throw new IdNotFoundException("Coupon not found, unable to update coupon.(id not found)");
     }
 
@@ -122,6 +128,19 @@ public class CompanyService extends ClientService {
         if (this.companyID > 0) {
             if (couponRepository.existsBycompany_idAndCouponID(this.companyID, couponID)) {
                     couponRepository.deleteCouponFromCustomers(couponID);
+                    Company thisCompany = getCompanyDetails();
+                    if (!thisCompany.getCoupons().isEmpty()){
+                        thisCompany.getCoupons().forEach(c ->{
+                                if(c.getCouponID() == couponID){
+
+                            try {
+                                Path imagePath = Paths.get(System.getProperty("user.dir") + File.separator + "/target/classes/images/"+c.getImage().replace("http://localhost:8080/images/",""));
+                                Files.delete(imagePath);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            }});
+                    }
                     couponRepository.deleteById(couponID);
             } else throw new CouponNotExistException("Coupon not found or not owned");
         } else throw new IdNotFoundException("Must login to get information...");

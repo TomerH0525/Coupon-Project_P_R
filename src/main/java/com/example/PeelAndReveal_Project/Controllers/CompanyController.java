@@ -11,9 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HashMap;
@@ -34,7 +32,9 @@ public class CompanyController {
 
     @GetMapping("details")
     public ResponseEntity<Company> getCompanyDetails() throws IdNotFoundException, LoginFailedException {
-        return ResponseEntity.ok(getService().getCompanyDetails());
+        Company company = getService().getCompanyDetails();
+        System.out.println(company);
+        return ResponseEntity.ok(company);
 
     }
 
@@ -54,11 +54,22 @@ public class CompanyController {
     }
 
     @PutMapping("/coupon/{id}/update")
-    public ResponseEntity<Coupon> updateCoupon(@RequestBody Coupon coupon, @PathVariable("id") int couponID) throws LoginFailedException, CouponTitleAlreadyExistsException, IdNotFoundException, CouponAmountException, CouponPriceException, CouponDateException {
+    public ResponseEntity<Coupon> updateCoupon(@RequestBody Coupon coupon, @PathVariable("id") int couponID) throws LoginFailedException, CouponTitleAlreadyExistsException, IdNotFoundException, CouponAmountException, CouponPriceException, CouponDateException, CouponImageException {
+        coupon.setCompany(getService().getCompanyDetails());
+        if (coupon.getImage().length() > 200) {
+            if (!coupon.getImage().isBlank()) {
+                String imageFileName = (coupon.getTitle().replaceAll("\\s*", "") + "_" + coupon.getCompany().getId() + ".jpg");
+                byte[] base64IntoBytes = Base64.getDecoder().decode(coupon.getImage().split(",", 2)[1]);
+                saveCouponImage(imageFileName, base64IntoBytes);
+                coupon.setImage("http://localhost:8080/images/" + imageFileName);
+            } else {
+                coupon.setImage("http://localhost:8080/images/couponPlaceholder.jpg");
+            }
+        }
         return ResponseEntity.accepted().body(getService().updateCoupon(coupon));
     }
 
-    @DeleteMapping("/coupon/{id}/delete")
+    @DeleteMapping("/coupon/{couponID}/delete")
     public ResponseEntity<String> deleteCoupon(@PathVariable int couponID) throws LoginFailedException, CouponNotExistException, IdNotFoundException {
         getService().deleteCoupon(couponID);
         return ResponseEntity.accepted().body("Coupon Deleted Successfully!");
@@ -69,7 +80,7 @@ public class CompanyController {
         return ResponseEntity.ok(getService().getAllCompanyCoupons());
     }
 
-    @GetMapping("/coupon/{id}")
+    @GetMapping("/coupon/{couponID}")
     public ResponseEntity<Coupon> getCouponByID(@PathVariable int couponID) throws LoginFailedException, CouponNotExistException, IdNotFoundException {
         return ResponseEntity.ok(getService().getCompanyCouponById(couponID));
     }
